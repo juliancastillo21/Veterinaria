@@ -94,23 +94,7 @@ Si necesitas crear el Excel desde cero, usa la primera fila con:
 Fecha y Hora | Nombre del Ordeñador | ID de la Vaca | Nombre de la Vaca | Litros | Imagen Base64 | Edad | Estado productivo | Vaca parida | Vaca seca | Numero crías | Numero parto
 ```
 
-## 🔐 Recomendación sobre versiones / datos
-No incluyas en Git versiones muy pesadas del Excel (puede crecer rápido por las imágenes). Usa un Excel limpio para producción o añádelo a `.gitignore` si solo quieres el código.
-
 ## 📦 Dependencias principales
 Ver `requirements.txt` (incluye Flask, openpyxl, Pillow, Werkzeug).
 
-## 🐙 Publicar en GitHub (resumen rápido)
-```powershell
-git init
-git add .
-git commit -m "Inicial: proyecto Veterinaria"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/Veterinaria.git
-git push -u origin main
-```
 
-Reemplaza `TU_USUARIO` por tu nombre real en GitHub.
-
----
-Si necesitas un archivo `.gitignore`, crea uno con exclusión de entorno virtual, cachés y Excel grande.
