@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Registros</title>
+    <link rel="stylesheet" href="../static/common.css">
+    <link rel="stylesheet" href="../static/registros.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Registros de Vacas</h1>
+            <h2>Consulta de Información</h2>
+        </header>
+
+        <div class="nav-buttons">
+            <button onclick="window.location.href='/'" class="btn-nav">🏠 Inicio</button>
+            <button onclick="window.location.href='/formulario'" class="btn-nav">📝 Nuevo Registro</button>
+        </div>
+
+        <div class="registros-container">
+            {% if error %}
+                <div class="error-message">
+                    <p>⚠️ {{ error }}</p>
+                </div>
+            {% elif registros %}
+                <div class="registros-stats">
+                    <p>Total de registros: <strong>{{ registros|length }}</strong></p>
+                </div>
+                
+                <div class="table-container">
+                    <table class="registros-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Ordeñador</th>
+                                <th>ID Vaca</th>
+                                <th>Nombre Vaca</th>
+                                <th>Edad</th>
+                                <th>Estado</th>
+                                <th>Parida</th>
+                                <th>Seca</th>
+                                <th>Crías</th>
+                                <th>Parto</th>
+                                <th>Litros</th>
+                                <th>Foto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for registro in registros %}
+                            <tr>
+                                <td>{{ registro.fecha_hora }}</td>
+                                <td>{{ registro.nombre_ordenador }}</td>
+                                <td><span class="badge">{{ registro.id_vaca }}</span></td>
+                                <td>{{ registro.nombre_vaca }}</td>
+                                <td>{{ registro.edad }} años</td>
+                                <td><span class="estado-badge estado-{{ registro.estado_productivo|lower|replace(' ', '-') }}">{{ registro.estado_productivo }}</span></td>
+                                <td>{{ registro.vaca_parida }}</td>
+                                <td>{{ registro.vaca_seca }}</td>
+                                <td>{{ registro.numero_crias }}</td>
+                                <td>{{ registro.numero_parto }}</td>
+                                <td><strong>{{ registro.litros }} L</strong></td>
+                                <td>
+                                    {% if registro.imagen_base64 %}
+                                        <button onclick="verFoto('{{ registro.imagen_base64 }}')" class="btn-ver-foto">👁️ Ver</button>
+                                    {% else %}
+                                        <span class="no-foto">Sin foto</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-message">
+                    <p>📋 No hay registros disponibles</p>
+                    <p class="empty-subtitle">Comienza agregando un nuevo registro</p>
+                    <button onclick="window.location.href='/formulario'" class="btn-agregar">➕ Agregar Registro</button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal para ver fotos -->
+    <div id="fotoModal" class="modal" onclick="cerrarModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <img id="fotoModalImg" src="" alt="Foto de la vaca">
+        </div>
+    </div>
+
+    <script>
+        function verFoto(imagenBase64) {
+            const modal = document.getElementById('fotoModal');
+            const modalImg = document.getElementById('fotoModalImg');
+            
+            // Crear data URI con la imagen base64
+            modalImg.src = 'data:image/jpeg;base64,' + imagenBase64;
+            
+            // Mostrar el modal
+            modal.style.display = 'block';
+            
+            // Manejar errores
+            modalImg.onerror = function() {
+                console.error('Error al cargar la imagen');
+                alert('No se pudo cargar la imagen.');
+            };
+            
+            modalImg.onload = function() {
+                console.log('Imagen cargada correctamente');
+            };
+        }
+
+        function cerrarModal() {
+            document.getElementById('fotoModal').style.display = 'none';
+        }
+
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cerrarModal();
+            }
+        });
+    </script>
+</body>
+</html>

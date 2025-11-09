@@ -1,0 +1,37 @@
+# Entorno Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# IDE / Editor
+.vscode/
+*.swp
+*.swo
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Excel de datos (comentado: decide si excluirlo)
+# registros_vacas.xlsx
+
+# Archivos temporales
+~$*
+
+# Backup / dumps
+*.bak
+*.old
+
+# Imágenes grandes generadas (no se usan ya, pero por si se reinstala carpeta)
+static/uploads/

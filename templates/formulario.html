@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Registro de Vacas</title>
+    <link rel="stylesheet" href="../static/common.css">
+    <link rel="stylesheet" href="../static/formulario.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐄 Veterinaria</h1>
+            <h2>Registro de Ordeño</h2>
+        </header>
+
+        <div class="nav-buttons">
+            <button onclick="window.location.href='/'" class="btn-nav">🏠 Volver al Inicio</button>
+        </div>
+
+        <div class="form-container">
+            <form id="vacaForm" action="/guardar" method="POST" enctype="multipart/form-data">
+                
+                <!-- Sección 1: Información del Ordeñador -->
+                <div class="form-section">
+                    <h3 class="section-title">👤 Información del Ordeñador</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre_ordenador">Nombre del Ordeñador:</label>
+                            <input type="text" id="nombre_ordenador" name="nombre_ordenador" required placeholder="Ingrese el nombre del ordeñador">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Identificación de la Vaca -->
+                <div class="form-section">
+                    <h3 class="section-title">🐄 Identificación de la Vaca</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_vaca">ID de la Vaca:</label>
+                            <input type="text" id="id_vaca" name="id_vaca" required placeholder="Ejemplo: V001">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre_vaca">Nombre de la Vaca:</label>
+                            <input type="text" id="nombre_vaca" name="nombre_vaca" required placeholder="Ingrese el nombre de la vaca">
+                        </div>
+                        <div class="form-group">
+                            <label for="edad">Edad:</label>
+                            <input type="number" id="edad" name="edad" min="0" required placeholder="Edad en años">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 3: Estado y Condición -->
+                <div class="form-section">
+                    <h3 class="section-title">📋 Estado y Condición</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="estado_productivo">Estado Productivo:</label>
+                            <select id="estado_productivo" name="estado_productivo" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Productiva">Productiva</option>
+                                <option value="No Productiva">No Productiva</option>
+                                <option value="En Reposo">En Reposo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vaca_parida">Vaca Parida:</label>
+                            <select id="vaca_parida" name="vaca_parida" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Sí">Sí</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vaca_seca">Vaca Seca:</label>
+                            <select id="vaca_seca" name="vaca_seca" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Sí">Sí</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 4: Información Reproductiva -->
+                <div class="form-section">
+                    <h3 class="section-title">🍼 Información Reproductiva</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="numero_crias">Número de Crías:</label>
+                            <input type="number" id="numero_crias" name="numero_crias" min="0" required placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="numero_parto">Número de Parto:</label>
+                            <input type="number" id="numero_parto" name="numero_parto" min="0" required placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 5: Producción de Leche -->
+                <div class="form-section">
+                    <h3 class="section-title">🥛 Producción de Leche</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="litros">Litros de Leche:</label>
+                            <input type="number" id="litros" name="litros" step="0.1" min="0" required placeholder="0.0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 6: Fotografía -->
+                <div class="form-section">
+                    <h3 class="section-title">📷 Fotografía de la Vaca</h3>
+                    <div class="form-group">
+                        <label for="foto">Foto de la Vaca:</label>
+                        <div class="camera-options">
+                            <button type="button" id="btnActivarCamara" class="btn-camera">📷 Activar Cámara</button>
+                            <button type="button" id="btnSeleccionarArchivo" class="btn-file">📁 Seleccionar Archivo</button>
+                        </div>
+                        <input type="file" id="foto" name="foto" accept="image/*" style="display: none;">
+                        
+                        <div id="cameraContainer" class="camera-container" style="display: none;">
+                            <video id="video" autoplay playsinline></video>
+                            <div class="camera-controls">
+                                <button type="button" id="btnTomarFoto" class="btn-capture">📸 Tomar Foto</button>
+                                <button type="button" id="btnCerrarCamara" class="btn-close-camera">✖ Cerrar Cámara</button>
+                            </div>
+                        </div>
+                        
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        <div id="preview" class="preview-container"></div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-submit">Guardar Registro</button>
+                    <button type="reset" class="btn-reset">Limpiar Formulario</button>
+                </div>
+            </form>
+
+            <div id="mensaje" class="mensaje"></div>
+        </div>
+    </div>
+
+    <script>
+        let stream = null;
+        let fotoCapturada = null;
+
+        // Elementos del DOM
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const preview = document.getElementById('preview');
+        const cameraContainer = document.getElementById('cameraContainer');
+        const inputFoto = document.getElementById('foto');
+        const btnActivarCamara = document.getElementById('btnActivarCamara');
+        const btnSeleccionarArchivo = document.getElementById('btnSeleccionarArchivo');
+        const btnTomarFoto = document.getElementById('btnTomarFoto');
+        const btnCerrarCamara = document.getElementById('btnCerrarCamara');
+        const vacaForm = document.getElementById('vacaForm');
+
+        // Activar cámara
+        btnActivarCamara.addEventListener('click', async function() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                video.srcObject = stream;
+                cameraContainer.style.display = 'block';
+                preview.innerHTML = '';
+                fotoCapturada = null;
+            } catch (error) {
+                alert('Error al acceder a la cámara: ' + error.message);
+            }
+        });
+
+        // Seleccionar archivo
+        btnSeleccionarArchivo.addEventListener('click', function() {
+            inputFoto.click();
+        });
+
+        // Vista previa de archivo seleccionado
+        inputFoto.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
+                    cerrarCamara();
+                }
+                reader.readAsDataURL(file);
+                fotoCapturada = null;
+            }
+        });
+
+        // Tomar foto
+        btnTomarFoto.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            
+            // Reducir el tamaño de la imagen para optimizar (Excel tiene límite de 32,767 caracteres por celda)
+            const maxWidth = 640;
+            const maxHeight = 640;
+            let width = video.videoWidth;
+            let height = video.videoHeight;
+            
+            // Calcular nuevas dimensiones manteniendo la proporción
+            if (width > height) {
+                if (width > maxWidth) {
+                    height = height * (maxWidth / width);
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width = width * (maxHeight / height);
+                    height = maxHeight;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            context.drawImage(video, 0, 0, width, height);
+            
+            // Mostrar vista previa
+            const imageData = canvas.toDataURL('image/jpeg', 0.7);
+            preview.innerHTML = `<img src="${imageData}" alt="Foto capturada">`;
+            
+            // Convertir a Blob para enviar con compresión
+            canvas.toBlob(function(blob) {
+                fotoCapturada = blob;
+            }, 'image/jpeg', 0.7);
+            
+            cerrarCamara();
+        });
+
+        // Cerrar cámara
+        btnCerrarCamara.addEventListener('click', cerrarCamara);
+
+        function cerrarCamara() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraContainer.style.display = 'none';
+        }
+
+        // Validar antes de enviar el formulario
+        vacaForm.addEventListener('submit', function(e) {
+            if (!fotoCapturada && !inputFoto.files.length) {
+                e.preventDefault();
+                alert('Por favor, toma una foto o selecciona un archivo');
+                return false;
+            }
+
+            // Si hay foto capturada, crear un archivo y agregarlo al input
+            if (fotoCapturada) {
+                e.preventDefault();
+                const timestamp = new Date().getTime();
+                const file = new File([fotoCapturada], `foto_${timestamp}.jpg`, { type: 'image/jpeg' });
+                
+                // Crear un DataTransfer para agregar el archivo al input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                inputFoto.files = dataTransfer.files;
+                
+                // Enviar el formulario
+                vacaForm.submit();
+            }
+        });
+
+        // Limpiar formulario
+        vacaForm.addEventListener('reset', function() {
+            preview.innerHTML = '';
+            cerrarCamara();
+            fotoCapturada = null;
+        });
+
+        // Mostrar mensajes de éxito o error
+        const urlParams = new URLSearchParams(window.location.search);
+        const mensaje = document.getElementById('mensaje');
+        
+        if (urlParams.get('success') === 'true') {
+            mensaje.innerHTML = '<p class="success">✓ Registro guardado exitosamente</p>';
+            setTimeout(() => {
+                mensaje.innerHTML = '';
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 3000);
+        } else if (urlParams.get('error')) {
+            mensaje.innerHTML = `<p class="error">✗ Error: ${urlParams.get('error')}</p>`;
+        }
+    </script>
+</body>
+</html>

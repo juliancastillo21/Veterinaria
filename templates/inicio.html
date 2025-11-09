@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Página de Inicio</title>
+    <link rel="stylesheet" href="static/common.css">
+    <link rel="stylesheet" href="static/inicio.css">
+</head>
+<body>
+    <div class="inicio-container">
+        <header class="inicio-header">
+            <h1>🐄 Sistema de Veterinaria</h1>
+            <p class="inicio-subtitle">Gestión de Registro de Ganado</p>
+        </header>
+
+        <div class="menu-container">
+            <div class="menu-card" onclick="window.location.href='/formulario'">
+                <div class="card-icon">📝</div>
+                <h2>Registrar Vaca</h2>
+                <p>Agregar nueva información de ordeño y datos de la vaca</p>
+                <div class="card-arrow">→</div>
+            </div>
+
+            <div class="menu-card" onclick="window.location.href='/registros'">
+                <div class="card-icon">📊</div>
+                <h2>Ver Registros</h2>
+                <p>Consultar todos los registros guardados</p>
+                <div class="card-arrow">→</div>
+            </div>
+
+            <div class="menu-card" onclick="window.location.href='/estadisticas'">
+                <div class="card-icon">📈</div>
+                <h2>Estadísticas</h2>
+                <p>Ver análisis y reportes del ganado</p>
+                <div class="card-arrow">→</div>
+            </div>
+        </div>
+
+        <footer class="inicio-footer">
+            <p>© 2025 Sistema de Veterinaria - Gestión de Ganado</p>
+        </footer>
+    </div>
+</body>
+</html>

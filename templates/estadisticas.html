@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Estadísticas</title>
+    <link rel="stylesheet" href="../static/common.css">
+    <link rel="stylesheet" href="../static/estadisticas.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Estadísticas del Ganado</h1>
+            <h2>Análisis y Reportes</h2>
+        </header>
+
+        <div class="nav-buttons">
+            <button onclick="window.location.href='/'" class="btn-nav">🏠 Inicio</button>
+            <button onclick="window.location.href='/formulario'" class="btn-nav">📝 Nuevo Registro</button>
+        </div>
+
+        <div class="estadisticas-container">
+            {% if error %}
+                <div class="error-message">
+                    <p>⚠️ {{ error }}</p>
+                </div>
+            {% elif stats %}
+                <!-- Resumen General -->
+                <div class="stats-summary">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-icon">🐄</div>
+                        <div class="stat-content">
+                            <h4>Total de Vacas</h4>
+                            <div class="stat-number">{{ stats.total_vacas }}</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-success">
+                        <div class="stat-icon">🥛</div>
+                        <div class="stat-content">
+                            <h4>Producción Total</h4>
+                            <div class="stat-number">{{ stats.total_litros }} L</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-info">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h4>Promedio por Vaca</h4>
+                            <div class="stat-number">{{ stats.promedio_litros }} L</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <h4>Edad Promedio</h4>
+                            <div class="stat-number">{{ stats.promedio_edad }} años</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Producción -->
+                <div class="stats-section">
+                    <h3 class="section-title">🥛 Análisis de Producción</h3>
+                    <div class="stats-grid">
+                        <div class="info-card">
+                            <div class="info-label">Máxima Producción</div>
+                            <div class="info-value">{{ stats.max_litros }} L</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Mínima Producción</div>
+                            <div class="info-value">{{ stats.min_litros }} L</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado Productivo -->
+                <div class="stats-section">
+                    <h3 class="section-title">📊 Estado Productivo del Ganado</h3>
+                    <div class="chart-container">
+                        <div class="chart-bar-group">
+                            <div class="chart-bar-item">
+                                <div class="chart-label">Productivas</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar chart-bar-success" style="width: {{ (stats.productivas / stats.total_vacas * 100) if stats.total_vacas > 0 else 0 }}%">
+                                        <span class="chart-value">{{ stats.productivas }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-bar-item">
+                                <div class="chart-label">No Productivas</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar chart-bar-danger" style="width: {{ (stats.no_productivas / stats.total_vacas * 100) if stats.total_vacas > 0 else 0 }}%">
+                                        <span class="chart-value">{{ stats.no_productivas }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-bar-item">
+                                <div class="chart-label">En Reposo</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar chart-bar-warning" style="width: {{ (stats.en_reposo / stats.total_vacas * 100) if stats.total_vacas > 0 else 0 }}%">
+                                        <span class="chart-value">{{ stats.en_reposo }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Reproductiva -->
+                <div class="stats-section">
+                    <h3 class="section-title">🍼 Información Reproductiva</h3>
+                    <div class="stats-grid">
+                        <div class="info-card">
+                            <div class="info-label">Vacas Paridas</div>
+                            <div class="info-value">{{ stats.vacas_paridas }}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Vacas Secas</div>
+                            <div class="info-value">{{ stats.vacas_secas }}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Total de Crías</div>
+                            <div class="info-value">{{ stats.total_crias }}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Promedio Crías/Vaca</div>
+                            <div class="info-value">{{ stats.promedio_crias }}</div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-label">Promedio de Partos</div>
+                            <div class="info-value">{{ stats.promedio_partos }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top 5 Mejores Productoras -->
+                <div class="stats-section">
+                    <h3 class="section-title">🏆 Top 5 Mejores Productoras</h3>
+                    <div class="top-list">
+                        {% for vaca in stats.top_productoras %}
+                        <div class="top-item">
+                            <div class="top-rank">{{ loop.index }}</div>
+                            <div class="top-info">
+                                <div class="top-name">{{ vaca.nombre_vaca }}</div>
+                                <div class="top-id">ID: {{ vaca.id_vaca }}</div>
+                            </div>
+                            <div class="top-value">{{ vaca.litros }} L</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Producción por Ordeñador -->
+                <div class="stats-section">
+                    <h3 class="section-title">👤 Producción por Ordeñador</h3>
+                    <div class="ordenadores-list">
+                        {% for nombre, data in stats.ordenadores.items() %}
+                        <div class="ordenador-card">
+                            <div class="ordenador-name">{{ nombre }}</div>
+                            <div class="ordenador-stats">
+                                <div class="ordenador-stat">
+                                    <span class="ordenador-label">Vacas:</span>
+                                    <span class="ordenador-value">{{ data.count }}</span>
+                                </div>
+                                <div class="ordenador-stat">
+                                    <span class="ordenador-label">Total:</span>
+                                    <span class="ordenador-value">{{ data.total|round(2) }} L</span>
+                                </div>
+                                <div class="ordenador-stat">
+                                    <span class="ordenador-label">Promedio:</span>
+                                    <span class="ordenador-value">{{ (data.total / data.count)|round(2) }} L</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            {% else %}
+                <div class="empty-message">
+                    <p>📊 No hay datos suficientes para generar estadísticas</p>
+                    <p class="empty-subtitle">Comienza agregando registros para ver el análisis</p>
+                    <button onclick="window.location.href='/formulario'" class="btn-agregar">➕ Agregar Registro</button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
