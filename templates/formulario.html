@@ -27,7 +27,10 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nombre_ordenador">Nombre del Ordeñador:</label>
-                            <input type="text" id="nombre_ordenador" name="nombre_ordenador" required placeholder="Ingrese el nombre del ordeñador" value="{{ registro.nombre_ordenador if registro else '' }}">
+                            <div class="input-action">
+                                <input type="text" id="nombre_ordenador" name="nombre_ordenador" required placeholder="Ingrese el nombre del ordeñador" value="{{ registro.nombre_ordenador if registro else '' }}">
+                                <button type="button" class="btn-mic" data-target="nombre_ordenador" aria-label="Dictar nombre del ordeñador">🎤 Dictar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -42,11 +45,18 @@
                         </div>
                         <div class="form-group">
                             <label for="nombre_vaca">Nombre de la Vaca:</label>
-                            <input type="text" id="nombre_vaca" name="nombre_vaca" required placeholder="Ingrese el nombre de la vaca" value="{{ registro.nombre_vaca if registro else '' }}">
+                            <div class="input-action">
+                                <input type="text" id="nombre_vaca" name="nombre_vaca" required placeholder="Ingrese el nombre de la vaca" value="{{ registro.nombre_vaca if registro else '' }}">
+                                <button type="button" class="btn-mic" data-target="nombre_vaca" aria-label="Dictar nombre de la vaca">🎤 Dictar</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="edad">Edad:</label>
-                            <input type="number" id="edad" name="edad" min="0" required placeholder="Edad en años" value="{{ registro.edad if registro else '' }}">
+                            <div class="number-stepper">
+                                <button type="button" class="stepper-btn" data-target="edad" data-step="-1" aria-label="Restar edad">−</button>
+                                <input type="number" id="edad" name="edad" min="0" step="1" inputmode="numeric" required placeholder="Edad en años" value="{{ registro.edad if registro else '' }}">
+                                <button type="button" class="stepper-btn" data-target="edad" data-step="1" aria-label="Sumar edad">＋</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,11 +122,19 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="numero_crias">Número de Crías:</label>
-                            <input type="number" id="numero_crias" name="numero_crias" min="0" required placeholder="0" value="{{ registro.numero_crias if registro else '' }}">
+                            <div class="number-stepper">
+                                <button type="button" class="stepper-btn" data-target="numero_crias" data-step="-1" aria-label="Restar crías">−</button>
+                                <input type="number" id="numero_crias" name="numero_crias" min="0" step="1" inputmode="numeric" required placeholder="0" value="{{ registro.numero_crias if registro else '' }}">
+                                <button type="button" class="stepper-btn" data-target="numero_crias" data-step="1" aria-label="Sumar crías">＋</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="numero_parto">Número de Parto:</label>
-                            <input type="number" id="numero_parto" name="numero_parto" min="0" required placeholder="0" value="{{ registro.numero_parto if registro else '' }}">
+                            <div class="number-stepper">
+                                <button type="button" class="stepper-btn" data-target="numero_parto" data-step="-1" aria-label="Restar partos">−</button>
+                                <input type="number" id="numero_parto" name="numero_parto" min="0" step="1" inputmode="numeric" required placeholder="0" value="{{ registro.numero_parto if registro else '' }}">
+                                <button type="button" class="stepper-btn" data-target="numero_parto" data-step="1" aria-label="Sumar partos">＋</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -127,7 +145,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="litros">Litros de Leche:</label>
-                            <input type="number" id="litros" name="litros" step="0.1" min="0" required placeholder="0.0" value="{{ registro.litros if registro else '' }}">
+                            <div class="number-stepper">
+                                <button type="button" class="stepper-btn" data-target="litros" data-step="-0.1" aria-label="Restar litros">−</button>
+                                <input type="number" id="litros" name="litros" step="0.1" min="0" inputmode="decimal" required placeholder="0.0" value="{{ registro.litros if registro else '' }}">
+                                <button type="button" class="stepper-btn" data-target="litros" data-step="0.1" aria-label="Sumar litros">＋</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -310,6 +332,66 @@
             preview.innerHTML = '';
             cerrarCamara();
             fotoCapturada = null;
+        });
+
+        // Dictado por voz (Web Speech API) para facilitar a quienes no escriben
+        function iniciarDictadoPara(campoId, boton) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Tu navegador no soporta dictado por voz. Prueba con Chrome en Android o escritorio.');
+                return;
+            }
+            const reconocimiento = new SpeechRecognition();
+            reconocimiento.lang = 'es-ES';
+            reconocimiento.interimResults = false;
+            reconocimiento.maxAlternatives = 1;
+
+            const input = document.getElementById(campoId);
+            const textoOriginal = boton.textContent;
+            boton.disabled = true;
+            boton.textContent = '🎙️ Escuchando…';
+
+            reconocimiento.onresult = (event) => {
+                const transcripcion = event.results[0][0].transcript;
+                input.value = transcripcion;
+            };
+            reconocimiento.onerror = () => {
+                alert('No se pudo reconocer la voz. Intenta hablar claro y cerca del micrófono.');
+            };
+            reconocimiento.onend = () => {
+                boton.disabled = false;
+                boton.textContent = textoOriginal;
+            };
+            reconocimiento.start();
+        }
+
+        document.querySelectorAll('.btn-mic').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                iniciarDictadoPara(target, btn);
+            });
+        });
+
+        // Botones +/− para números (evita teclear)
+        function ajustarNumero(input, delta) {
+            const step = parseFloat(input.getAttribute('step') || '1');
+            const min = input.hasAttribute('min') ? parseFloat(input.getAttribute('min')) : -Infinity;
+            const max = input.hasAttribute('max') ? parseFloat(input.getAttribute('max')) : Infinity;
+            const valorActual = input.value === '' ? 0 : parseFloat(input.value);
+            // Redondear al múltiplo de step para evitar decimales raros
+            const nuevo = Math.max(min, Math.min(max, (valorActual + delta)));
+            const decimales = (step.toString().split('.')[1] || '').length;
+            input.value = nuevo.toFixed(decimales);
+            input.dispatchEvent(new Event('change'));
+        }
+
+        document.querySelectorAll('.stepper-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                const delta = parseFloat(btn.getAttribute('data-step'));
+                const input = document.getElementById(target);
+                ajustarNumero(input, delta);
+            });
         });
 
         // Lógica para 'Ninguna' en Enfermedades (excluyente)
