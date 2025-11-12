@@ -39,6 +39,8 @@
                                 <th>Nombre Vaca</th>
                                 <th>Edad</th>
                                 <th>Estado</th>
+                                <th>Vacunas</th>
+                                <th>Enfermedades</th>
                                 <th>Parida</th>
                                 <th>Seca</th>
                                 <th>Crías</th>
@@ -56,6 +58,8 @@
                                 <td>{{ registro.nombre_vaca }}</td>
                                 <td>{{ registro.edad }} años</td>
                                 <td><span class="estado-badge estado-{{ registro.estado_productivo|lower|replace(' ', '-') }}">{{ registro.estado_productivo }}</span></td>
+                                <td>{{ registro.vacunas or '—' }}</td>
+                                <td>{{ registro.enfermedades or '—' }}</td>
                                 <td>{{ registro.vaca_parida }}</td>
                                 <td>{{ registro.vaca_seca }}</td>
                                 <td>{{ registro.numero_crias }}</td>

@@ -83,7 +83,30 @@
                     </div>
                 </div>
 
-                <!-- Sección 4: Información Reproductiva -->
+                <!-- Sección 4: Sanidad y Enfermedades -->
+                <div class="form-section">
+                    <h3 class="section-title">💉 Sanidad</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Registro sanitario (Vacunas):</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="vacunas" value="Brucella"> Brucella</label>
+                                <label><input type="checkbox" name="vacunas" value="Aftosa"> Aftosa</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Enfermedades:</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="enfermedades" value="Mastitis"> Mastitis</label>
+                                <label><input type="checkbox" name="enfermedades" value="Cojeras"> Cojeras</label>
+                                <label><input type="checkbox" name="enfermedades" value="Hipocalcemia"> Hipocalcemia</label>
+                                <label><input type="checkbox" name="enfermedades" value="Ninguna" id="enf-ninguna"> Ninguna</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 5: Información Reproductiva -->
                 <div class="form-section">
                     <h3 class="section-title">🍼 Información Reproductiva</h3>
                     <div class="form-row">
@@ -98,7 +121,7 @@
                     </div>
                 </div>
 
-                <!-- Sección 5: Producción de Leche -->
+                <!-- Sección 6: Producción de Leche -->
                 <div class="form-section">
                     <h3 class="section-title">🥛 Producción de Leche</h3>
                     <div class="form-row">
@@ -109,7 +132,7 @@
                     </div>
                 </div>
 
-                <!-- Sección 6: Fotografía -->
+                <!-- Sección 7: Fotografía -->
                 <div class="form-section">
                     <h3 class="section-title">📷 Fotografía de la Vaca</h3>
                     <div class="form-group">
@@ -276,6 +299,21 @@
             preview.innerHTML = '';
             cerrarCamara();
             fotoCapturada = null;
+        });
+
+        // Lógica para 'Ninguna' en Enfermedades (excluyente)
+        const enfNinguna = document.getElementById('enf-ninguna');
+        const enfChecks = Array.from(document.querySelectorAll('input[name="enfermedades"]'));
+        enfChecks.forEach(chk => {
+            chk.addEventListener('change', () => {
+                if (chk === enfNinguna && enfNinguna.checked) {
+                    // Desmarcar todas las demás
+                    enfChecks.forEach(o => { if (o !== enfNinguna) o.checked = false; });
+                } else if (chk !== enfNinguna && chk.checked) {
+                    // Desmarcar 'Ninguna'
+                    enfNinguna.checked = false;
+                }
+            });
         });
 
         // Mostrar mensajes de éxito o error

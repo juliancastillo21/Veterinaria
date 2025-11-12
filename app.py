@@ -75,7 +75,9 @@ def guardar_en_excel(datos):
         datos['vaca_parida'],
         datos['vaca_seca'],
         datos['numero_crias'],
-        datos['numero_parto']
+        datos['numero_parto'],
+        datos.get('vacunas', ''),
+        datos.get('enfermedades', '')
     ])
     
     wb.save(EXCEL_FILE)
@@ -102,6 +104,9 @@ def registros():
         registros_data = []
         for row in ws.iter_rows(min_row=2, values_only=True):
             if row[0]:  # Si hay fecha y hora (primera columna no está vacía)
+                row_len = len(row)
+                vacunas = row[12] if row_len > 12 else ''
+                enfermedades = row[13] if row_len > 13 else ''
                 registros_data.append({
                     'fecha_hora': row[0],
                     'nombre_ordenador': row[1],
@@ -114,7 +119,9 @@ def registros():
                     'vaca_parida': row[8],
                     'vaca_seca': row[9],
                     'numero_crias': row[10],
-                    'numero_parto': row[11]
+                    'numero_parto': row[11],
+                    'vacunas': row[12],
+                    'enfermedades': row[13]
                 })
         
         wb.close()
@@ -234,6 +241,13 @@ def guardar():
         numero_crias = request.form.get('numero_crias')
         numero_parto = request.form.get('numero_parto')
         litros = request.form.get('litros')
+        vacunas_list = request.form.getlist('vacunas')
+        enfermedades_list = request.form.getlist('enfermedades')
+        # Normalizar enfermedades: 'Ninguna' es excluyente
+        if 'Ninguna' in enfermedades_list:
+            enfermedades_list = ['Ninguna']
+        vacunas_str = ', '.join(vacunas_list) if vacunas_list else ''
+        enfermedades_str = ', '.join(enfermedades_list) if enfermedades_list else 'Ninguna'
         
         # Verificar que todos los campos estén presentes
         if not all([nombre_ordenador, id_vaca, nombre_vaca, edad, estado_productivo, 
@@ -268,7 +282,9 @@ def guardar():
                 'numero_crias': int(numero_crias),
                 'numero_parto': int(numero_parto),
                 'litros': float(litros),
-                'imagen_base64': imagen_base64
+                'imagen_base64': imagen_base64,
+                'vacunas': vacunas_str,
+                'enfermedades': enfermedades_str
             }
             
             # Guardar en Excel
