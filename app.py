@@ -82,10 +82,126 @@ def guardar_en_excel(datos):
     
     wb.save(EXCEL_FILE)
 
+def ensure_workbook_and_headers():
+    """Asegura que el archivo Excel exista y tenga encabezados mínimos en la hoja principal y la hoja 'Crias'."""
+    try:
+        wb = load_workbook(EXCEL_FILE)
+    except FileNotFoundError:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Registros'
+        ws.append([
+            'FechaHora','Ordeñador','ID Vaca','Nombre Vaca','Litros','Imagen Base64','Edad','Estado','Parida','Seca','Nº Crías','Nº Parto','Vacunas','Enfermedades'
+        ])
+    # hoja principal
+    ws = wb.active
+    if ws.max_row == 1 and ws.max_column < 5:
+        ws.append([
+            'FechaHora','Ordeñador','ID Vaca','Nombre Vaca','Litros','Imagen Base64','Edad','Estado','Parida','Seca','Nº Crías','Nº Parto','Vacunas','Enfermedades'
+        ])
+    # hoja crias
+    if 'Crias' not in wb.sheetnames:
+        ws_c = wb.create_sheet('Crias')
+        ws_c.append(['FechaRegistro','MadreID','MadreNombre','CriaID','CriaNombre','FechaNacimiento','Sexo','Observaciones'])
+    wb.save(EXCEL_FILE)
+    wb.close()
+
+def get_unique_cows():
+    """Devuelve lista de vacas únicas (ID, Nombre) desde la hoja principal."""
+    ensure_workbook_and_headers()
+    wb = load_workbook(EXCEL_FILE)
+    ws = wb.active
+    seen = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[2]:
+            continue
+        cow_id = str(row[2])
+        name = row[3] or ''
+        # Conserva el último nombre visto
+        seen[cow_id] = name
+    wb.close()
+    # Lista ordenada por ID
+    return sorted([{ 'id': cid, 'nombre': seen[cid] } for cid in seen.keys()], key=lambda x: x['id'])
+
+def get_crias():
+    """Lee la hoja 'Crias' y devuelve todas las crías."""
+    ensure_workbook_and_headers()
+    wb = load_workbook(EXCEL_FILE)
+    ws = wb['Crias']
+    crias = []
+    for idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        if not row or not row[1]:
+            continue
+        crias.append({
+            'fila': idx,
+            'fecha_registro': row[0],
+            'madre_id': row[1],
+            'madre_nombre': row[2],
+            'cria_id': row[3],
+            'cria_nombre': row[4],
+            'fecha_nacimiento': row[5],
+            'sexo': row[6],
+            'observaciones': row[7] or ''
+        })
+    wb.close()
+    return crias
+
+def add_cria(madre_id: str, madre_nombre: str, cria_id: str, cria_nombre: str, fecha_nac: str, sexo: str, obs: str):
+    ensure_workbook_and_headers()
+    wb = load_workbook(EXCEL_FILE)
+    ws = wb['Crias']
+    ws.append([
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        madre_id,
+        madre_nombre,
+        cria_id,
+        cria_nombre,
+        fecha_nac,
+        sexo,
+        obs
+    ])
+    wb.save(EXCEL_FILE)
+    wb.close()
+
 @app.route('/')
 def index():
     """Página de inicio"""
     return render_template('inicio.html')
+
+@app.route('/crias')
+def crias_view():
+    """Vista para gestionar crías: lista y formulario de alta."""
+    try:
+        vacas = get_unique_cows()
+        crias = get_crias()
+        return render_template('crias.html', vacas=vacas, crias=crias)
+    except Exception as e:
+        return render_template('crias.html', vacas=[], crias=[], error=f"Error: {str(e)}")
+
+@app.route('/crias/guardar', methods=['POST'])
+def crias_guardar():
+    try:
+        madre = request.form.get('madre')  # formato: id|nombre
+        cria_id = request.form.get('cria_id')
+        cria_nombre = request.form.get('cria_nombre')
+        fecha_nac = request.form.get('fecha_nacimiento')
+        sexo = request.form.get('sexo')
+        obs = request.form.get('observaciones') or ''
+
+        if not madre or not cria_id or not cria_nombre or not fecha_nac or not sexo:
+            return redirect(url_for('crias_view') + '?error=Faltan campos requeridos')
+
+        if '|' in madre:
+            madre_id, madre_nombre = madre.split('|', 1)
+        else:
+            # fallback: buscar nombre por ID
+            madre_id = madre
+            madre_nombre = next((v['nombre'] for v in get_unique_cows() if v['id'] == madre_id), '')
+
+        add_cria(madre_id, madre_nombre, cria_id, cria_nombre, fecha_nac, sexo, obs)
+        return redirect(url_for('crias_view') + '?success=true')
+    except Exception as e:
+        return redirect(url_for('crias_view') + f'?error={str(e)}')
 
 @app.route('/formulario')
 def formulario():

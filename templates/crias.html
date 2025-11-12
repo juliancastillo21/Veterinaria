@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veterinaria - Crías</title>
+    <link rel="stylesheet" href="../static/common.css">
+    <link rel="stylesheet" href="../static/registros.css">
+    <link rel="stylesheet" href="../static/crias.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐄 Crías</h1>
+            <h2>Identificación de crías por vaca</h2>
+        </header>
+
+        <div class="nav-buttons">
+            <button onclick="window.location.href='/'" class="btn-nav">🏠 Volver al Inicio</button>
+            <button onclick="window.location.href='/registros'" class="btn-nav">📋 Registros</button>
+            <button onclick="window.location.href='/estadisticas'" class="btn-nav">📈 Estadísticas</button>
+        </div>
+
+        <div class="crias-layout">
+            <section class="card form-card">
+                <h3 class="section-title">➕ Agregar cría</h3>
+                <form action="/crias/guardar" method="POST" class="cria-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="madre">Vaca madre</label>
+                            <select id="madre" name="madre" required>
+                                <option value="">Seleccione…</option>
+                                {% for v in vacas %}
+                                <option value="{{ v.id }}|{{ v.nombre }}">{{ v.id }} — {{ v.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cria_id">ID de la Cría</label>
+                            <input type="text" id="cria_id" name="cria_id" placeholder="Ej: C001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cria_nombre">Nombre de la Cría</label>
+                            <input type="text" id="cria_nombre" name="cria_nombre" placeholder="Nombre" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sexo">Sexo</label>
+                            <select id="sexo" name="sexo" required>
+                                <option value="">Seleccione…</option>
+                                <option value="Hembra">Hembra</option>
+                                <option value="Macho">Macho</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="observaciones">Observaciones</label>
+                            <input type="text" id="observaciones" name="observaciones" placeholder="Opcional">
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-submit">Guardar cría</button>
+                        <button type="reset" class="btn-reset">Limpiar</button>
+                    </div>
+                </form>
+                <div id="msg" class="mensaje"></div>
+            </section>
+
+            <section class="card table-card">
+                <h3 class="section-title">📋 Listado de crías</h3>
+                <div class="toolbar">
+                    <label>Filtrar por madre:
+                        <select id="filtroMadre">
+                            <option value="">Todas</option>
+                            {% for v in vacas %}
+                            <option value="{{ v.id }}">{{ v.id }} — {{ v.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha Registro</th>
+                                <th>Madre (ID — Nombre)</th>
+                                <th>ID Cría</th>
+                                <th>Nombre Cría</th>
+                                <th>Fecha Nac.</th>
+                                <th>Sexo</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCrias">
+                            {% for c in crias %}
+                            <tr data-madre="{{ c.madre_id }}">
+                                <td>{{ c.fecha_registro }}</td>
+                                <td><strong>{{ c.madre_id }}</strong> — {{ c.madre_nombre }}</td>
+                                <td>{{ c.cria_id }}</td>
+                                <td>{{ c.cria_nombre }}</td>
+                                <td>{{ c.fecha_nacimiento }}</td>
+                                <td>{{ c.sexo }}</td>
+                                <td>{{ c.observaciones }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if not crias or crias|length == 0 %}
+                        <p class="empty-note">Aún no hay crías registradas.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const msg = document.getElementById('msg');
+        if (urlParams.get('success') === 'true') {
+            msg.innerHTML = '<p class="success">✓ Cría guardada exitosamente</p>';
+            setTimeout(() => msg.innerHTML = '', 3000);
+        } else if (urlParams.get('error')) {
+            msg.innerHTML = `<p class="error">✗ Error: ${urlParams.get('error')}</p>`;
+        }
+
+        // Filtro por madre
+        const filtroMadre = document.getElementById('filtroMadre');
+        const filas = Array.from(document.querySelectorAll('#tablaCrias tr'));
+        filtroMadre.addEventListener('change', () => {
+            const val = filtroMadre.value;
+            filas.forEach(tr => {
+                tr.style.display = (!val || tr.dataset.madre === val) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
