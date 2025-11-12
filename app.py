@@ -77,7 +77,8 @@ def guardar_en_excel(datos):
         datos['numero_crias'],
         datos['numero_parto'],
         datos.get('vacunas', ''),
-        datos.get('enfermedades', '')
+        datos.get('enfermedades', ''),
+        datos.get('condicion_corporal', '')
     ])
     
     wb.save(EXCEL_FILE)
@@ -91,13 +92,13 @@ def ensure_workbook_and_headers():
         ws = wb.active
         ws.title = 'Registros'
         ws.append([
-            'FechaHora','Ordeñador','ID Vaca','Nombre Vaca','Litros','Imagen Base64','Edad','Estado','Parida','Seca','Nº Crías','Nº Parto','Vacunas','Enfermedades'
+            'FechaHora','Ordeñador','ID Vaca','Nombre Vaca','Litros','Imagen Base64','Edad','Estado','Parida','Seca','Nº Crías','Nº Parto','Vacunas','Enfermedades','Condición Corporal'
         ])
     # hoja principal
     ws = wb.active
     if ws.max_row == 1 and ws.max_column < 5:
         ws.append([
-            'FechaHora','Ordeñador','ID Vaca','Nombre Vaca','Litros','Imagen Base64','Edad','Estado','Parida','Seca','Nº Crías','Nº Parto','Vacunas','Enfermedades'
+            'FechaHora','Ordeñador','ID Vaca','Nombre Vaca','Litros','Imagen Base64','Edad','Estado','Parida','Seca','Nº Crías','Nº Parto','Vacunas','Enfermedades','Condición Corporal'
         ])
     # hoja crias
     if 'Crias' not in wb.sheetnames:
@@ -222,6 +223,7 @@ def editar(fila: int):
         # Campos seguros por índice
         vacunas_str = valores[12] if len(valores) > 12 else ''
         enfermedades_str = valores[13] if len(valores) > 13 else ''
+        condicion_corporal = valores[14] if len(valores) > 14 else ''
         vacunas_sel = [v.strip() for v in (vacunas_str or '').split(',') if v and v.strip()]
         enfermedades_sel = [e.strip() for e in (enfermedades_str or '').split(',') if e and e.strip()]
 
@@ -240,7 +242,8 @@ def editar(fila: int):
             'numero_crias': valores[10],
             'numero_parto': valores[11],
             'vacunas': vacunas_str,
-            'enfermedades': enfermedades_str
+            'enfermedades': enfermedades_str,
+            'condicion_corporal': condicion_corporal
         }
 
         return render_template(
@@ -269,6 +272,7 @@ def actualizar(fila: int):
         numero_crias = request.form.get('numero_crias')
         numero_parto = request.form.get('numero_parto')
         litros = request.form.get('litros')
+        condicion_corporal = request.form.get('condicion_corporal')
 
         vacunas_list = request.form.getlist('vacunas')
         enfermedades_list = request.form.getlist('enfermedades')
@@ -279,7 +283,7 @@ def actualizar(fila: int):
 
         # Validación básica
         if not all([nombre_ordenador, id_vaca, nombre_vaca, edad, estado_productivo, 
-                    vaca_parida, vaca_seca, numero_crias, numero_parto, litros]):
+                    vaca_parida, vaca_seca, numero_crias, numero_parto, litros, condicion_corporal]):
             return redirect(url_for('editar', fila=fila) + '?error=Faltan campos requeridos')
 
         # Cargar Excel y obtener imagen existente por si no se reemplaza
@@ -309,6 +313,7 @@ def actualizar(fila: int):
         ws.cell(row=fila, column=12, value=int(numero_parto))
         ws.cell(row=fila, column=13, value=vacunas_str)
         ws.cell(row=fila, column=14, value=enfermedades_str)
+        ws.cell(row=fila, column=15, value=condicion_corporal)
 
         wb.save(EXCEL_FILE)
         wb.close()
@@ -332,6 +337,7 @@ def registros():
                 row_len = len(row)
                 vacunas = row[12] if row_len > 12 else ''
                 enfermedades = row[13] if row_len > 13 else ''
+                condicion_corporal = row[14] if row_len > 14 else ''
                 registros_data.append({
                     'fila': idx,
                     'fecha_hora': row[0],
@@ -347,7 +353,8 @@ def registros():
                     'numero_crias': row[10],
                     'numero_parto': row[11],
                     'vacunas': vacunas,
-                    'enfermedades': enfermedades
+                    'enfermedades': enfermedades,
+                    'condicion_corporal': condicion_corporal
                 })
         
         wb.close()
@@ -370,6 +377,7 @@ def api_registro(fila: int):
         row_len = len(valores)
         vacunas = valores[12] if row_len > 12 else ''
         enfermedades = valores[13] if row_len > 13 else ''
+        condicion_corporal = valores[14] if row_len > 14 else ''
 
         data = {
             'fila': fila,
@@ -386,7 +394,8 @@ def api_registro(fila: int):
             'numero_crias': valores[10],
             'numero_parto': valores[11],
             'vacunas': vacunas or '',
-            'enfermedades': enfermedades or ''
+            'enfermedades': enfermedades or '',
+            'condicion_corporal': condicion_corporal or ''
         }
         return jsonify(success=True, registro=data)
     except Exception as e:
@@ -502,6 +511,7 @@ def guardar():
         numero_crias = request.form.get('numero_crias')
         numero_parto = request.form.get('numero_parto')
         litros = request.form.get('litros')
+        condicion_corporal = request.form.get('condicion_corporal')
         vacunas_list = request.form.getlist('vacunas')
         enfermedades_list = request.form.getlist('enfermedades')
         # Normalizar enfermedades: 'Ninguna' es excluyente
@@ -512,7 +522,7 @@ def guardar():
         
         # Verificar que todos los campos estén presentes
         if not all([nombre_ordenador, id_vaca, nombre_vaca, edad, estado_productivo, 
-                    vaca_parida, vaca_seca, numero_crias, numero_parto, litros]):
+                    vaca_parida, vaca_seca, numero_crias, numero_parto, litros, condicion_corporal]):
             return redirect(url_for('formulario') + '?error=Faltan campos requeridos')
         
         # Procesar la foto
@@ -545,7 +555,8 @@ def guardar():
                 'litros': float(litros),
                 'imagen_base64': imagen_base64,
                 'vacunas': vacunas_str,
-                'enfermedades': enfermedades_str
+                'enfermedades': enfermedades_str,
+                'condicion_corporal': condicion_corporal
             }
             
             # Guardar en Excel

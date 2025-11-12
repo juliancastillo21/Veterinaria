@@ -90,6 +90,15 @@
                                 <option value="No" {{ 'selected' if registro and registro.vaca_seca=='No' else '' }}>No</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="condicion_corporal">Condición Corporal:</label>
+                            <select id="condicion_corporal" name="condicion_corporal" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Flaca" {{ 'selected' if registro and registro.condicion_corporal=='Flaca' else '' }}>Flaca</option>
+                                <option value="Normal" {{ 'selected' if registro and registro.condicion_corporal=='Normal' else '' }}>Normal</option>
+                                <option value="Gorda" {{ 'selected' if registro and registro.condicion_corporal=='Gorda' else '' }}>Gorda</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

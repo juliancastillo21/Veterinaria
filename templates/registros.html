@@ -45,6 +45,7 @@
                                 <th>Seca</th>
                                 <th>Crías</th>
                                 <th>Parto</th>
+                                <th>Cond. Corporal</th>
                                 <th>Litros</th>
                                 <th>Foto</th>
                                 <th>Acciones</th>
@@ -65,6 +66,7 @@
                                 <td>{{ registro.vaca_seca }}</td>
                                 <td>{{ registro.numero_crias }}</td>
                                 <td>{{ registro.numero_parto }}</td>
+                                <td>{{ registro.condicion_corporal or '—' }}</td>
                                 <td><strong>{{ registro.litros }} L</strong></td>
                                 <td>
                                     {% if registro.imagen_base64 %}
@@ -138,6 +140,14 @@
                             <option value="">Seleccione...</option>
                             <option value="Sí">Sí</option>
                             <option value="No">No</option>
+                        </select>
+                    </label>
+                    <label>Condición Corporal
+                        <select name="condicion_corporal" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Flaca">Flaca</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Gorda">Gorda</option>
                         </select>
                     </label>
                     <label>Número de Crías
@@ -234,6 +244,7 @@
                 form.estado_productivo.value = r.estado_productivo || '';
                 form.vaca_parida.value = r.vaca_parida || '';
                 form.vaca_seca.value = r.vaca_seca || '';
+                form.condicion_corporal.value = r.condicion_corporal || '';
                 form.numero_crias.value = r.numero_crias || '';
                 form.numero_parto.value = r.numero_parto || '';
                 form.litros.value = r.litros || '';
