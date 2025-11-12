@@ -47,6 +47,7 @@
                                 <th>Parto</th>
                                 <th>Litros</th>
                                 <th>Foto</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -72,6 +73,9 @@
                                         <span class="no-foto">Sin foto</span>
                                     {% endif %}
                                 </td>
+                                <td>
+                                    <button data-fila="{{ registro.fila }}" onclick="abrirEditar(this.dataset.fila)" class="btn-edit">✏️ Editar</button>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -89,9 +93,91 @@
 
     <!-- Modal para ver fotos -->
     <div id="fotoModal" class="modal" onclick="cerrarModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-content modal-photo" onclick="event.stopPropagation()">
             <span class="close" onclick="cerrarModal()">&times;</span>
             <img id="fotoModalImg" src="" alt="Foto de la vaca">
+        </div>
+    </div>
+
+    <!-- Modal para editar registro -->
+    <div id="editarModal" class="modal" onclick="cerrarEditar()">
+        <div class="modal-content modal-edit" onclick="event.stopPropagation()">
+            <span class="close" onclick="cerrarEditar()">&times;</span>
+            <h2 class="modal-title">✏️ Editar Registro</h2>
+            <form id="editForm" method="POST" enctype="multipart/form-data">
+                <div class="edit-grid">
+                    <label>Nombre del Ordeñador
+                        <input type="text" name="nombre_ordenador" required>
+                    </label>
+                    <label>ID de la Vaca
+                        <input type="text" name="id_vaca" required>
+                    </label>
+                    <label>Nombre de la Vaca
+                        <input type="text" name="nombre_vaca" required>
+                    </label>
+                    <label>Edad
+                        <input type="number" name="edad" min="0" required>
+                    </label>
+                    <label>Estado Productivo
+                        <select name="estado_productivo" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Productiva">Productiva</option>
+                            <option value="No Productiva">No Productiva</option>
+                            <option value="En Reposo">En Reposo</option>
+                        </select>
+                    </label>
+                    <label>Vaca Parida
+                        <select name="vaca_parida" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Sí">Sí</option>
+                            <option value="No">No</option>
+                        </select>
+                    </label>
+                    <label>Vaca Seca
+                        <select name="vaca_seca" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Sí">Sí</option>
+                            <option value="No">No</option>
+                        </select>
+                    </label>
+                    <label>Número de Crías
+                        <input type="number" name="numero_crias" min="0" required>
+                    </label>
+                    <label>Número de Parto
+                        <input type="number" name="numero_parto" min="0" required>
+                    </label>
+                    <label>Litros de Leche
+                        <input type="number" name="litros" step="0.1" min="0" required>
+                    </label>
+                </div>
+
+                <div class="edit-groups">
+                    <div class="group">
+                        <div style="font-weight:600;margin-bottom:8px;">Vacunas</div>
+                        <label><input type="checkbox" name="vacunas" value="Brucella"> Brucella</label>
+                        <label><input type="checkbox" name="vacunas" value="Aftosa"> Aftosa</label>
+                    </div>
+                    <div class="group">
+                        <div style="font-weight:600;margin-bottom:8px;">Enfermedades</div>
+                        <label><input type="checkbox" name="enfermedades" value="Mastitis"> Mastitis</label>
+                        <label><input type="checkbox" name="enfermedades" value="Cojeras"> Cojeras</label>
+                        <label><input type="checkbox" name="enfermedades" value="Hipocalcemia"> Hipocalcemia</label>
+                        <label><input type="checkbox" id="enfModalNinguna" name="enfermedades" value="Ninguna"> Ninguna</label>
+                    </div>
+                </div>
+
+                <div class="edit-photo">
+                    <div class="photo-readonly-note">La foto no se puede actulizar.</div>
+                    <div class="preview-container readonly">
+                        <img id="editPreview" src="" alt="Vista previa">
+                    </div>
+                </div>
+
+                <div style="margin-top:20px; display:flex; gap:12px; justify-content:flex-end;">
+                    <button type="button" class="btn-nav" onclick="cerrarEditar()">Cancelar</button>
+                    <button type="submit" class="btn-ver-foto">Guardar cambios</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -127,6 +213,70 @@
                 cerrarModal();
             }
         });
+
+        // ---- Edición en modal ----
+        async function abrirEditar(fila) {
+            try {
+                const res = await fetch(`/api/registro/${fila}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'No se pudo cargar el registro');
+
+                const r = data.registro;
+                const modal = document.getElementById('editarModal');
+                const form = document.getElementById('editForm');
+                form.action = `/actualizar/${fila}`;
+
+                // Inputs simples
+                form.nombre_ordenador.value = r.nombre_ordenador || '';
+                form.id_vaca.value = r.id_vaca || '';
+                form.nombre_vaca.value = r.nombre_vaca || '';
+                form.edad.value = r.edad || '';
+                form.estado_productivo.value = r.estado_productivo || '';
+                form.vaca_parida.value = r.vaca_parida || '';
+                form.vaca_seca.value = r.vaca_seca || '';
+                form.numero_crias.value = r.numero_crias || '';
+                form.numero_parto.value = r.numero_parto || '';
+                form.litros.value = r.litros || '';
+
+                // Checkboxes vacunas
+                const vacs = (r.vacunas || '').split(',').map(v=>v.trim()).filter(Boolean);
+                form.querySelectorAll('input[name="vacunas"]').forEach(chk => {
+                    chk.checked = vacs.includes(chk.value);
+                });
+
+                // Checkboxes enfermedades (con 'Ninguna' excluyente)
+                const enfs = (r.enfermedades || '').split(',').map(v=>v.trim()).filter(Boolean);
+                form.querySelectorAll('input[name="enfermedades"]').forEach(chk => {
+                    chk.checked = enfs.includes(chk.value);
+                });
+                const enfNinguna = document.getElementById('enfModalNinguna');
+                form.querySelectorAll('input[name="enfermedades"]').forEach(chk => {
+                    chk.addEventListener('change', () => {
+                        if (chk === enfNinguna && enfNinguna.checked) {
+                            form.querySelectorAll('input[name="enfermedades"]').forEach(o => { if (o !== enfNinguna) o.checked = false; });
+                        } else if (chk !== enfNinguna && chk.checked) {
+                            enfNinguna.checked = false;
+                        }
+                    });
+                });
+
+                // Preview de imagen actual (solo lectura)
+                const prev = document.getElementById('editPreview');
+                if (r.imagen_base64) {
+                    prev.src = `data:image/jpeg;base64,${r.imagen_base64}`;
+                } else {
+                    prev.src = '';
+                }
+
+                modal.style.display = 'block';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function cerrarEditar() {
+            document.getElementById('editarModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>

@@ -19,7 +19,7 @@
         </div>
 
         <div class="form-container">
-            <form id="vacaForm" action="/guardar" method="POST" enctype="multipart/form-data">
+            <form id="vacaForm" action="{{ form_action }}" method="POST" enctype="multipart/form-data" data-is-edit="{{ '1' if edicion else '0' }}" data-has-image="{{ '1' if registro and registro.imagen_base64 else '0' }}">
                 
                 <!-- Sección 1: Información del Ordeñador -->
                 <div class="form-section">
@@ -27,7 +27,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nombre_ordenador">Nombre del Ordeñador:</label>
-                            <input type="text" id="nombre_ordenador" name="nombre_ordenador" required placeholder="Ingrese el nombre del ordeñador">
+                            <input type="text" id="nombre_ordenador" name="nombre_ordenador" required placeholder="Ingrese el nombre del ordeñador" value="{{ registro.nombre_ordenador if registro else '' }}">
                         </div>
                     </div>
                 </div>
@@ -38,15 +38,15 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="id_vaca">ID de la Vaca:</label>
-                            <input type="text" id="id_vaca" name="id_vaca" required placeholder="Ejemplo: V001">
+                            <input type="text" id="id_vaca" name="id_vaca" required placeholder="Ejemplo: V001" value="{{ registro.id_vaca if registro else '' }}">
                         </div>
                         <div class="form-group">
                             <label for="nombre_vaca">Nombre de la Vaca:</label>
-                            <input type="text" id="nombre_vaca" name="nombre_vaca" required placeholder="Ingrese el nombre de la vaca">
+                            <input type="text" id="nombre_vaca" name="nombre_vaca" required placeholder="Ingrese el nombre de la vaca" value="{{ registro.nombre_vaca if registro else '' }}">
                         </div>
                         <div class="form-group">
                             <label for="edad">Edad:</label>
-                            <input type="number" id="edad" name="edad" min="0" required placeholder="Edad en años">
+                            <input type="number" id="edad" name="edad" min="0" required placeholder="Edad en años" value="{{ registro.edad if registro else '' }}">
                         </div>
                     </div>
                 </div>
@@ -59,25 +59,25 @@
                             <label for="estado_productivo">Estado Productivo:</label>
                             <select id="estado_productivo" name="estado_productivo" required>
                                 <option value="">Seleccione...</option>
-                                <option value="Productiva">Productiva</option>
-                                <option value="No Productiva">No Productiva</option>
-                                <option value="En Reposo">En Reposo</option>
+                                <option value="Productiva" {{ 'selected' if registro and registro.estado_productivo=='Productiva' else '' }}>Productiva</option>
+                                <option value="No Productiva" {{ 'selected' if registro and registro.estado_productivo=='No Productiva' else '' }}>No Productiva</option>
+                                <option value="En Reposo" {{ 'selected' if registro and registro.estado_productivo=='En Reposo' else '' }}>En Reposo</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="vaca_parida">Vaca Parida:</label>
                             <select id="vaca_parida" name="vaca_parida" required>
                                 <option value="">Seleccione...</option>
-                                <option value="Sí">Sí</option>
-                                <option value="No">No</option>
+                                <option value="Sí" {{ 'selected' if registro and registro.vaca_parida=='Sí' else '' }}>Sí</option>
+                                <option value="No" {{ 'selected' if registro and registro.vaca_parida=='No' else '' }}>No</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="vaca_seca">Vaca Seca:</label>
                             <select id="vaca_seca" name="vaca_seca" required>
                                 <option value="">Seleccione...</option>
-                                <option value="Sí">Sí</option>
-                                <option value="No">No</option>
+                                <option value="Sí" {{ 'selected' if registro and registro.vaca_seca=='Sí' else '' }}>Sí</option>
+                                <option value="No" {{ 'selected' if registro and registro.vaca_seca=='No' else '' }}>No</option>
                             </select>
                         </div>
                     </div>
@@ -90,17 +90,17 @@
                         <div class="form-group">
                             <label>Registro sanitario (Vacunas):</label>
                             <div class="checkbox-group">
-                                <label><input type="checkbox" name="vacunas" value="Brucella"> Brucella</label>
-                                <label><input type="checkbox" name="vacunas" value="Aftosa"> Aftosa</label>
+                                <label><input type="checkbox" name="vacunas" value="Brucella" {{ 'checked' if vacunas_sel and 'Brucella' in vacunas_sel else '' }}> Brucella</label>
+                                <label><input type="checkbox" name="vacunas" value="Aftosa" {{ 'checked' if vacunas_sel and 'Aftosa' in vacunas_sel else '' }}> Aftosa</label>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Enfermedades:</label>
                             <div class="checkbox-group">
-                                <label><input type="checkbox" name="enfermedades" value="Mastitis"> Mastitis</label>
-                                <label><input type="checkbox" name="enfermedades" value="Cojeras"> Cojeras</label>
-                                <label><input type="checkbox" name="enfermedades" value="Hipocalcemia"> Hipocalcemia</label>
-                                <label><input type="checkbox" name="enfermedades" value="Ninguna" id="enf-ninguna"> Ninguna</label>
+                                <label><input type="checkbox" name="enfermedades" value="Mastitis" {{ 'checked' if enfermedades_sel and 'Mastitis' in enfermedades_sel else '' }}> Mastitis</label>
+                                <label><input type="checkbox" name="enfermedades" value="Cojeras" {{ 'checked' if enfermedades_sel and 'Cojeras' in enfermedades_sel else '' }}> Cojeras</label>
+                                <label><input type="checkbox" name="enfermedades" value="Hipocalcemia" {{ 'checked' if enfermedades_sel and 'Hipocalcemia' in enfermedades_sel else '' }}> Hipocalcemia</label>
+                                <label><input type="checkbox" name="enfermedades" value="Ninguna" id="enf-ninguna" {{ 'checked' if enfermedades_sel and 'Ninguna' in enfermedades_sel else '' }}> Ninguna</label>
                             </div>
                         </div>
                     </div>
@@ -112,11 +112,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="numero_crias">Número de Crías:</label>
-                            <input type="number" id="numero_crias" name="numero_crias" min="0" required placeholder="0">
+                            <input type="number" id="numero_crias" name="numero_crias" min="0" required placeholder="0" value="{{ registro.numero_crias if registro else '' }}">
                         </div>
                         <div class="form-group">
                             <label for="numero_parto">Número de Parto:</label>
-                            <input type="number" id="numero_parto" name="numero_parto" min="0" required placeholder="0">
+                            <input type="number" id="numero_parto" name="numero_parto" min="0" required placeholder="0" value="{{ registro.numero_parto if registro else '' }}">
                         </div>
                     </div>
                 </div>
@@ -127,7 +127,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="litros">Litros de Leche:</label>
-                            <input type="number" id="litros" name="litros" step="0.1" min="0" required placeholder="0.0">
+                            <input type="number" id="litros" name="litros" step="0.1" min="0" required placeholder="0.0" value="{{ registro.litros if registro else '' }}">
                         </div>
                     </div>
                 </div>
@@ -152,12 +152,16 @@
                         </div>
                         
                         <canvas id="canvas" style="display: none;"></canvas>
-                        <div id="preview" class="preview-container"></div>
+                        <div id="preview" class="preview-container">
+                            {% if edicion and registro and registro.imagen_base64 %}
+                                <img src="data:image/jpeg;base64,{{ registro.imagen_base64 }}" alt="Vista previa">
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" class="btn-submit">Guardar Registro</button>
+                    <button type="submit" class="btn-submit">{{ 'Actualizar Registro' if edicion else 'Guardar Registro' }}</button>
                     <button type="reset" class="btn-reset">Limpiar Formulario</button>
                 </div>
             </form>
@@ -270,12 +274,19 @@
             cameraContainer.style.display = 'none';
         }
 
+    // Variables de modo edición (desde data-* del formulario)
+    const isEdit = vacaForm.dataset.isEdit === '1';
+    const hasExistingImage = vacaForm.dataset.hasImage === '1';
+
         // Validar antes de enviar el formulario
         vacaForm.addEventListener('submit', function(e) {
-            if (!fotoCapturada && !inputFoto.files.length) {
-                e.preventDefault();
-                alert('Por favor, toma una foto o selecciona un archivo');
-                return false;
+            const noNuevaFoto = (!fotoCapturada && !inputFoto.files.length);
+            if (noNuevaFoto) {
+                if (!isEdit || (isEdit && !hasExistingImage)) {
+                    e.preventDefault();
+                    alert('Por favor, toma una foto o selecciona un archivo');
+                    return false;
+                }
             }
 
             // Si hay foto capturada, crear un archivo y agregarlo al input

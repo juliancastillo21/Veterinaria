@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from openpyxl import Workbook, load_workbook
 from datetime import datetime
 import base64
@@ -90,7 +90,116 @@ def index():
 @app.route('/formulario')
 def formulario():
     """Página del formulario de registro"""
-    return render_template('formulario.html')
+    return render_template('formulario.html', edicion=False, form_action=url_for('guardar'))
+
+@app.route('/editar/<int:fila>')
+def editar(fila: int):
+    """Carga un registro para editarlo y reutiliza el formulario."""
+    try:
+        wb = load_workbook(EXCEL_FILE)
+        ws = wb.active
+        row = ws[fila]
+        # Convertir a values
+        valores = [cell.value for cell in row]
+        wb.close()
+
+        # Campos seguros por índice
+        vacunas_str = valores[12] if len(valores) > 12 else ''
+        enfermedades_str = valores[13] if len(valores) > 13 else ''
+        vacunas_sel = [v.strip() for v in (vacunas_str or '').split(',') if v and v.strip()]
+        enfermedades_sel = [e.strip() for e in (enfermedades_str or '').split(',') if e and e.strip()]
+
+        registro = {
+            'fila': fila,
+            'fecha_hora': valores[0],
+            'nombre_ordenador': valores[1],
+            'id_vaca': valores[2],
+            'nombre_vaca': valores[3],
+            'litros': valores[4],
+            'imagen_base64': valores[5],
+            'edad': valores[6],
+            'estado_productivo': valores[7],
+            'vaca_parida': valores[8],
+            'vaca_seca': valores[9],
+            'numero_crias': valores[10],
+            'numero_parto': valores[11],
+            'vacunas': vacunas_str,
+            'enfermedades': enfermedades_str
+        }
+
+        return render_template(
+            'formulario.html',
+            edicion=True,
+            form_action=url_for('actualizar', fila=fila),
+            registro=registro,
+            vacunas_sel=vacunas_sel,
+            enfermedades_sel=enfermedades_sel
+        )
+    except Exception as e:
+        return redirect(url_for('registros') + f'?error=No se pudo cargar el registro: {str(e)}')
+
+@app.route('/actualizar/<int:fila>', methods=['POST'])
+def actualizar(fila: int):
+    """Actualiza un registro existente en la fila dada."""
+    try:
+        # Obtener datos del formulario
+        nombre_ordenador = request.form.get('nombre_ordenador')
+        id_vaca = request.form.get('id_vaca')
+        nombre_vaca = request.form.get('nombre_vaca')
+        edad = request.form.get('edad')
+        estado_productivo = request.form.get('estado_productivo')
+        vaca_parida = request.form.get('vaca_parida')
+        vaca_seca = request.form.get('vaca_seca')
+        numero_crias = request.form.get('numero_crias')
+        numero_parto = request.form.get('numero_parto')
+        litros = request.form.get('litros')
+
+        vacunas_list = request.form.getlist('vacunas')
+        enfermedades_list = request.form.getlist('enfermedades')
+        if 'Ninguna' in enfermedades_list:
+            enfermedades_list = ['Ninguna']
+        vacunas_str = ', '.join(vacunas_list) if vacunas_list else ''
+        enfermedades_str = ', '.join(enfermedades_list) if enfermedades_list else 'Ninguna'
+
+        # Validación básica
+        if not all([nombre_ordenador, id_vaca, nombre_vaca, edad, estado_productivo, 
+                    vaca_parida, vaca_seca, numero_crias, numero_parto, litros]):
+            return redirect(url_for('editar', fila=fila) + '?error=Faltan campos requeridos')
+
+        # Cargar Excel y obtener imagen existente por si no se reemplaza
+        wb = load_workbook(EXCEL_FILE)
+        ws = wb.active
+        imagen_existente = ws.cell(row=fila, column=6).value  # Columna 6 = imagen_base64
+
+        # Procesar foto si se envió una nueva
+        imagen_base64 = imagen_existente
+        if 'foto' in request.files:
+            foto = request.files['foto']
+            if foto and foto.filename and allowed_file(foto.filename):
+                imagen_base64 = procesar_imagen_a_base64(foto)
+
+        # Escribir valores en la fila (respetando el orden de columnas actual)
+        ws.cell(row=fila, column=1, value=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        ws.cell(row=fila, column=2, value=nombre_ordenador)
+        ws.cell(row=fila, column=3, value=id_vaca)
+        ws.cell(row=fila, column=4, value=nombre_vaca)
+        ws.cell(row=fila, column=5, value=float(litros))
+        ws.cell(row=fila, column=6, value=imagen_base64)
+        ws.cell(row=fila, column=7, value=int(edad))
+        ws.cell(row=fila, column=8, value=estado_productivo)
+        ws.cell(row=fila, column=9, value=vaca_parida)
+        ws.cell(row=fila, column=10, value=vaca_seca)
+        ws.cell(row=fila, column=11, value=int(numero_crias))
+        ws.cell(row=fila, column=12, value=int(numero_parto))
+        ws.cell(row=fila, column=13, value=vacunas_str)
+        ws.cell(row=fila, column=14, value=enfermedades_str)
+
+        wb.save(EXCEL_FILE)
+        wb.close()
+
+        return redirect(url_for('registros') + '?success=edit')
+    except Exception as e:
+        return redirect(url_for('editar', fila=fila) + f'?error={str(e)}')
 
 @app.route('/registros')
 def registros():
@@ -102,12 +211,13 @@ def registros():
         
         # Obtener todos los registros (excepto la fila de encabezados)
         registros_data = []
-        for row in ws.iter_rows(min_row=2, values_only=True):
+        for idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
             if row[0]:  # Si hay fecha y hora (primera columna no está vacía)
                 row_len = len(row)
                 vacunas = row[12] if row_len > 12 else ''
                 enfermedades = row[13] if row_len > 13 else ''
                 registros_data.append({
+                    'fila': idx,
                     'fecha_hora': row[0],
                     'nombre_ordenador': row[1],
                     'id_vaca': row[2],
@@ -120,8 +230,8 @@ def registros():
                     'vaca_seca': row[9],
                     'numero_crias': row[10],
                     'numero_parto': row[11],
-                    'vacunas': row[12],
-                    'enfermedades': row[13]
+                    'vacunas': vacunas,
+                    'enfermedades': enfermedades
                 })
         
         wb.close()
@@ -130,6 +240,41 @@ def registros():
         return render_template('registros.html', registros=[], error="No se encontró el archivo de registros")
     except Exception as e:
         return render_template('registros.html', registros=[], error=f"Error al leer registros: {str(e)}")
+
+@app.route('/api/registro/<int:fila>')
+def api_registro(fila: int):
+    """Devuelve un registro en formato JSON para edición modal."""
+    try:
+        wb = load_workbook(EXCEL_FILE)
+        ws = wb.active
+        row = ws[fila]
+        valores = [cell.value for cell in row]
+        wb.close()
+
+        row_len = len(valores)
+        vacunas = valores[12] if row_len > 12 else ''
+        enfermedades = valores[13] if row_len > 13 else ''
+
+        data = {
+            'fila': fila,
+            'fecha_hora': valores[0],
+            'nombre_ordenador': valores[1],
+            'id_vaca': valores[2],
+            'nombre_vaca': valores[3],
+            'litros': valores[4],
+            'imagen_base64': valores[5],
+            'edad': valores[6],
+            'estado_productivo': valores[7],
+            'vaca_parida': valores[8],
+            'vaca_seca': valores[9],
+            'numero_crias': valores[10],
+            'numero_parto': valores[11],
+            'vacunas': vacunas or '',
+            'enfermedades': enfermedades or ''
+        }
+        return jsonify(success=True, registro=data)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 400
 
 @app.route('/estadisticas')
 def estadisticas():
